@@ -1,7 +1,7 @@
 import torch.nn as nn
 
 
-class SoundEmbed(nn.Module):
+class AudioEmbed(nn.Module):
     def __init__(self):
         super().__init__()
 
@@ -17,7 +17,7 @@ class VideoEmbed(nn.Module):
         pass
 
 
-class SoundClassify(nn.Module):
+class AudioClassify(nn.Module):
     def __init__(self):
         super().__init__()
 
@@ -36,9 +36,9 @@ class Similarity(nn.Module):
 class Net(nn.Module):
     def __init__(self):
         super().__init__()
-        self.sound_embed = SoundEmbed()
+        self.sound_embed = AudioEmbed()
         self.video_embed = VideoEmbed()
-        self.sound_classify = SoundClassify()
+        self.sound_classify = AudioClassify()
         self.similarity = Similarity()
 
     def forward(self, x):
