@@ -17,7 +17,7 @@ class VideoEmbed(nn.Module):
         pass
 
 
-class AudioClassify(nn.Module):
+class AudioClassifier(nn.Module):
     def __init__(self):
         super().__init__()
 
@@ -36,9 +36,9 @@ class Similarity(nn.Module):
 class Net(nn.Module):
     def __init__(self):
         super().__init__()
-        self.sound_embed = AudioEmbed()
+        self.audio_embed = AudioEmbed()
         self.video_embed = VideoEmbed()
-        self.sound_classify = AudioClassify()
+        self.audio_classify = AudioClassifier()
         self.similarity = Similarity()
 
     def forward(self, x):
