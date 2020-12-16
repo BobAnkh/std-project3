@@ -2,6 +2,7 @@ import pickle as pkl
 import numpy as np
 import librosa
 
+SR_ORIGIN = 44100
 SR_DOWN = 11000
 
 
@@ -16,6 +17,10 @@ def audio_process(path):
 
     stft_data = []
     for a in audio:
+        # pad if less than 4s
+        if a.shape[0] < SR_ORIGIN * 4:
+            a = np.pad(a, (0, SR_ORIGIN * 4 - a.shape[0]), mode='constant')
+
         a_rs = librosa.resample(a, sr, SR_DOWN)
         a_stft = librosa.stft(a_rs, n_fft=510, hop_length=128)
         stft_data.append(a_stft)
