@@ -1,3 +1,7 @@
+from code.dataloader import trainDataset
+
+from torch.utils.data.dataloader import DataLoader
+
 
 def test_task1(root_path):
     '''
@@ -16,8 +20,16 @@ def test_task1(root_path):
         'whiteboard_spray': 8
         'yellow_block': 9
     '''
+    trainData = trainDataset(root_path, True, True)
+    trainLoader = DataLoader(trainData, batch_size=1)
+
+    for batch_ndx, sample in enumerate(trainLoader):
+        print(batch_ndx, sample, sample["audio"].shape, sample["rgb"].shape)
+        break
+
     results = None
     return results
+
 
 def test_task2(root_path):
     '''
@@ -29,6 +41,7 @@ def test_task2(root_path):
     results = None
     return results
 
+
 def test_task3(root_path):
     '''
     :param root_path: root path of test data, e.g. ./dataset/task3/test/0/
@@ -38,3 +51,7 @@ def test_task3(root_path):
     '''
     results = None
     return results
+
+
+if __name__ == "__main__":
+    test_task1("./dataset/train")

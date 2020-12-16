@@ -1,6 +1,8 @@
-import pickle as pkl
-import numpy as np
+import glob
 import librosa
+import numpy as np
+import os
+import pickle as pkl
 
 SR_ORIGIN = 44100
 SR_DOWN = 11000
@@ -25,23 +27,37 @@ def audio_process(path):
         a_stft = librosa.stft(a_rs, n_fft=510, hop_length=128)
         stft_data.append(a_stft)
 
-    return stft_data
+    return np.abs(np.array(stft_data))
+
+
+def pre_process(basePath):
+    """
+    对basePath下的所有pkl文件做处理
+    """
+    print(basePath)
+    audio_files = glob.glob(os.path.join(basePath, "**/*.pkl"), recursive=True)
+    for path in audio_files:
+        stft = audio_process(path)
+        print(path)
+        np.save(os.path.splitext(path)[0], stft)
 
 
 def main():
-    import matplotlib.pyplot as plt
-    from librosa.display import specshow
+    # import matplotlib.pyplot as plt
+    # from librosa.display import specshow
 
-    stft = audio_process('data/train/toy_elephant/0/audio_data.pkl')
+    # stft = audio_process('data/train/toy_elephant/0/audio_data.pkl')
 
-    # display stft result
-    fig, ax = plt.subplots(nrows=4, ncols=1, sharex=True)
-    for i in range(4):
-        D = librosa.amplitude_to_db(np.abs(stft[i]), ref=np.max)
-        img = specshow(D, y_axis='linear', x_axis='time', sr=SR_DOWN, ax=ax[i])
-        ax[i].label_outer()
-    fig.colorbar(img, ax=ax, format="%+2.f dB")
-    plt.show()
+    # # display stft result
+    # fig, ax = plt.subplots(nrows=4, ncols=1, sharex=True)
+    # for i in range(4):
+    #     D = librosa.amplitude_to_db(np.abs(stft[i]), ref=np.max)
+    #     img = specshow(D, y_axis='linear', x_axis='time', sr=SR_DOWN, ax=ax[i])
+    #     ax[i].label_outer()
+    # fig.colorbar(img, ax=ax, format="%+2.f dB")
+    # plt.show()
+    print("main")
+    pre_process("../dataset/train")
 
 
 if __name__ == '__main__':
