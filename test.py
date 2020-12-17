@@ -1,4 +1,5 @@
 from code.dataloader import trainDataset
+from code.model import VideoEmbed
 
 from torch.utils.data.dataloader import DataLoader
 
@@ -22,9 +23,11 @@ def test_task1(root_path):
     '''
     trainData = trainDataset(root_path, True, True)
     trainLoader = DataLoader(trainData, batch_size=1)
+    mod = VideoEmbed()
 
     for batch_ndx, sample in enumerate(trainLoader):
-        print(batch_ndx, sample, sample["audio"].shape, sample["rgb"].shape)
+        # print(batch_ndx, sample, sample["audio"].shape, sample["rgb"].shape)
+        print(mod(sample["rgb"]).shape)
         break
 
     results = None

@@ -49,6 +49,7 @@ class trainDataset(torch.utils.data.Dataset):
                 os.path.join(data_dir["dir"], "rgb")))]
             rgb = torch.as_tensor([np.asarray(Image.open(path))
                                    for path in rgb_img_dir])
+            rgb = rgb.permute(0, 3, 1, 2)
             data["rgb"] = rgb
 
         return data

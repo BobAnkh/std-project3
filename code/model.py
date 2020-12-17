@@ -1,4 +1,6 @@
 import torch.nn as nn
+from torch.nn.modules.conv import Conv2d
+from . import ConvLSTM
 
 
 class AudioEmbed(nn.Module):
@@ -12,9 +14,13 @@ class AudioEmbed(nn.Module):
 class VideoEmbed(nn.Module):
     def __init__(self):
         super().__init__()
+        self.conv_lstm = ConvLSTM.ConvLSTM(3, 16, (5, 5), 1, True)
+        # self.conv = Conv2d(16, 32, 3)
 
     def forward(self, x):
-        pass
+        last_output, last_states = self.conv_lstm(x)
+
+        return last_states[0][0]
 
 
 class AudioClassifier(nn.Module):
