@@ -1,5 +1,5 @@
-from code.dataloader import trainDataset
-from code.model import VideoEmbed
+from src.dataloader import trainDataset
+from src.model import VideoEmbed
 
 from torch.utils.data.dataloader import DataLoader
 
