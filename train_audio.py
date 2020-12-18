@@ -27,18 +27,18 @@ def train_task1(root_path, num_epochs=50):
         'whiteboard_spray': 8
         'yellow_block': 9
     '''
-    trainData = trainDataset(root_path, True, True)
-    indices = [x for x in range(len(trainData))]
-    random.shuffle(indices)
-    train_indices = indices[:round(0.8 * len(trainData))]
-    val_indices = indices[round(0.8 * len(trainData)):]
-    dataset_sizes = {'train': len(train_indices), 'val': len(val_indices)}
-    train_sampler = torch.utils.data.SubsetRandomSampler(train_indices)
-    val_sampler = torch.utils.data.SubsetRandomSampler(val_indices)
-    trainLoader = DataLoader(trainData, batch_size=2, sampler=train_sampler)
-    valLoader = DataLoader(trainData, batch_size=2, sampler=val_sampler)
+    trainData = trainDataset(root_path, True, False)
+
+    train_len = round(0.8 * len(trainData))
+    [train, val] = torch.utils.data.random_split(
+        trainData, [train_len, len(trainData) - train_len])
+
+    trainLoader = DataLoader(train, batch_size=2)
+    valLoader = DataLoader(val, batch_size=2)
     dataloaders = {'train': trainLoader, 'val': valLoader}
+
     mod = AudioEmbed()
+
     device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
     mod.to(device)
 
