@@ -1,5 +1,6 @@
 import time
-import random
+import copy
+# import random
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -10,7 +11,7 @@ from src.dataloader import trainDataset
 from src.model import AudioEmbed
 
 
-def train_task1(root_path, num_epochs=50):
+def train_task1(root_path, model_wts_path='./audio_resnet_ft.pth', num_epochs=50):
     '''
     :param root_path: root path of test data, e.g. ./dataset/task1/test/
     :return results: a dict of classification results
@@ -40,8 +41,13 @@ def train_task1(root_path, num_epochs=50):
 
     mod = AudioEmbed()
 
-    device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
-    mod.to(device)
+    # be default we use gpu to train
+    # device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
+    if torch.cuda.device_count() > 1:
+        print("Let's use", torch.cuda.device_count(), "GPUs!")
+        # dim = 0 [30, xxx] -> [10, ...], [10, ...], [10, ...] on 3 GPUs
+        mod = nn.DataParallel(mod)
+    mod.cuda()
 
     optimizer = optim.SGD(mod.parameters(), lr=0.001, momentum=0.9)
     criterion = nn.CrossEntropyLoss()
@@ -51,6 +57,8 @@ def train_task1(root_path, num_epochs=50):
     #     # print(batch_ndx, sample, sample["audio"].shape, sample["rgb"].shape)
     #     print(mod(sample["audio"].float()).shape)
     #     break
+    best_model_wts = copy.deepcopy(mod.state_dict())
+    best_acc = 0.0
     for epoch in range(num_epochs):
         print('Epoch {}/{}'.format(epoch, num_epochs - 1))
         print('-' * 10)
@@ -67,8 +75,8 @@ def train_task1(root_path, num_epochs=50):
 
             # Iterate over data.
             for sample in dataloaders[phase]:
-                inputs = sample["audio"].float().to(device)
-                labels = sample["class"].to(device)
+                inputs = sample["audio"].float().cuda()
+                labels = sample["class"].cuda()
 
                 # zero the parameter gradients
                 optimizer.zero_grad()
@@ -99,6 +107,19 @@ def train_task1(root_path, num_epochs=50):
             time_epoch = time.time() - since
             print('Training in {:.0f}m {:.0f}s'.format(
                 time_epoch // 60, time_epoch % 60))
+            # deep copy the model
+            if phase == 'val' and epoch_acc > best_acc:
+                best_acc = epoch_acc
+                best_model_wts = copy.deepcopy(mod.state_dict())
+    time_elapsed = time.time() - since
+    print('Training complete in {:.0f}m {:.0f}s'.format(
+        time_elapsed // 60, time_elapsed % 60))
+    print('Best val Acc: {:4f}'.format(best_acc))
+
+    # load best model weights
+    mod.load_state_dict(best_model_wts)
+    torch.save(mod.module.state_dict(), model_wts_path)
+    return mod
 
 
 if __name__ == "__main__":
