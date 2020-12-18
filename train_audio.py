@@ -7,7 +7,7 @@ import torch.optim as optim
 from torch.optim import lr_scheduler
 from torch.utils.data.dataloader import DataLoader
 
-from src.dataloader import trainDataset
+from src.dataloader import AudioTrainDataset
 from src.model import AudioEmbed
 
 
@@ -28,7 +28,7 @@ def train_task1(root_path, model_wts_path='./audio_resnet_ft.pth', num_epochs=50
         'whiteboard_spray': 8
         'yellow_block': 9
     '''
-    trainData = trainDataset(root_path, True, False)
+    trainData = AudioTrainDataset(root_path)
 
     dataset_sizes = {'train': round(
         0.8 * len(trainData)), 'val': len(trainData) - round(0.8 * len(trainData))}
