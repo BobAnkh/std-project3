@@ -29,12 +29,13 @@ def train_task1(root_path, num_epochs=50):
     '''
     trainData = trainDataset(root_path, True, False)
 
-    train_len = round(0.8 * len(trainData))
+    dataset_sizes = {'train': round(
+        0.8 * len(trainData)), 'val': len(trainData) - round(0.8 * len(trainData))}
     [train, val] = torch.utils.data.random_split(
-        trainData, [train_len, len(trainData) - train_len])
+        trainData, dataset_sizes.values())
 
-    trainLoader = DataLoader(train, batch_size=2)
-    valLoader = DataLoader(val, batch_size=2)
+    trainLoader = DataLoader(train, batch_size=4)
+    valLoader = DataLoader(val, batch_size=4)
     dataloaders = {'train': trainLoader, 'val': valLoader}
 
     mod = AudioEmbed()
