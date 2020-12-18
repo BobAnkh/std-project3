@@ -1,14 +1,18 @@
+import torch
 import torch.nn as nn
 from torch.nn.modules.conv import Conv2d
 from . import ConvLSTM
+from . import resnet
 
 
 class AudioEmbed(nn.Module):
     def __init__(self):
         super().__init__()
+        self.resnet = resnet.resnet50()
 
     def forward(self, x):
-        pass
+        output = self.resnet(x)
+        return output
 
 
 class VideoEmbed(nn.Module):
