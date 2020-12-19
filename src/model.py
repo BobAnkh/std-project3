@@ -3,15 +3,18 @@ import torch.nn as nn
 from torch.nn.modules.conv import Conv2d
 from . import ConvLSTM
 from . import resnet
+from . import alexnet
 
 
 class AudioEmbed(nn.Module):
     def __init__(self):
         super().__init__()
-        self.resnet = resnet.resnet50()
+        self.resnet = resnet.resnet34()
+        # self.alexnet = alexnet.AlexNet()
 
     def forward(self, x):
         output = self.resnet(x)
+        # output = self.alexnet(x)
         return output
 
 
