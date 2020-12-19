@@ -49,9 +49,9 @@ def train_task1(root_path, model_wts_path='./audio_resnet_ft.pth', num_epochs=50
         mod = nn.DataParallel(mod)
     mod.cuda()
 
-    optimizer = optim.SGD(mod.parameters(), lr=0.001, momentum=0.9)
+    optimizer = optim.Adam(mod.parameters(), lr=0.001)
     criterion = nn.CrossEntropyLoss()
-    scheduler = lr_scheduler.StepLR(optimizer, step_size=7, gamma=0.1)
+    scheduler = lr_scheduler.StepLR(optimizer, step_size=25, gamma=0.1)
     since = time.time()
     # for batch_ndx, sample in enumerate(trainLoader):
     #     # print(batch_ndx, sample, sample["audio"].shape, sample["rgb"].shape)
