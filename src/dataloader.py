@@ -4,6 +4,7 @@ import os
 import re
 import torch
 import glob
+from torchvision import transforms
 
 label = {
     '061_foam_brick': 0,
@@ -32,9 +33,10 @@ class AudioTrainDataset(torch.utils.data.Dataset):
                     "class_name": tup[0][-3],
                     "class": label[tup[0][-3]],
                     "label": tup[0][-2],
-                    "dir": tup[1]},
-                [(re.split(r"[/\\]", i), i)
-                 for i in glob.glob(os.path.join(path, "**/*.npy"), recursive=True)]))
+                    "dir": tup[1]
+                }, [(re.split(r"[/\\]", i), i)
+                    for i in glob.glob(os.path.join(path, "**/*.npy"),
+                                       recursive=True)]))
 
     def __len__(self):
         return len(self.data_dir)
@@ -53,9 +55,16 @@ class VideoTrainDataset(torch.utils.data.Dataset):
         super().__init__()
         self.path = path
         self.labels = os.listdir(self.path)
-        self.data_dir = [{"class_name": c, "class": label[c], "label": i, "dir": os.path.join(self.path, c, i)}
-                         for c in self.labels if not re.match(r".+\.rar", c)
+        self.data_dir = [{
+            "class_name": c,
+            "class": label[c],
+            "label": i,
+            "dir": os.path.join(self.path, c, i)
+        } for c in self.labels if not re.match(r".+\.rar", c)
                          for i in os.listdir(os.path.join(self.path, c))]
+        self.transform = transforms.Compose(
+            [transforms.ToTensor(),
+             transforms.Resize([48, 64])])
 
     def __len__(self):
         return len(self.data_dir)
@@ -68,11 +77,12 @@ class VideoTrainDataset(torch.utils.data.Dataset):
         # mask = torch.as_tensor([np.asarray(Image.open(path))
         #                         for path in mask_img_dir])
         # data["mask"] = mask
-        rgb_img_dir = [os.path.join(data_dir["dir"], "rgb", i) for i in sorted(os.listdir(
-            os.path.join(data_dir["dir"], "rgb")))]
-        rgb = torch.as_tensor([np.asarray(Image.open(path))
-                               for path in rgb_img_dir])
-        rgb = rgb.permute(0, 3, 1, 2)
+        rgb_img_dir = [
+            os.path.join(data_dir["dir"], "rgb", i)
+            for i in sorted(os.listdir(os.path.join(data_dir["dir"], "rgb")))
+        ]
+
+        rgb = self.transform(Image.open(rgb_img_dir[0]))  # only load first one
         data["rgb"] = rgb
 
         return data

@@ -27,7 +27,7 @@ def audio_process(path):
         a_stft = librosa.stft(a_rs, n_fft=510, hop_length=128)
         stft_data.append(a_stft)
 
-    return np.abs(np.array(stft_data))
+    return np.abs(np.array(stft_data)).astype('float32')
 
 
 def pre_process(basePath):
@@ -57,7 +57,7 @@ def main():
     # fig.colorbar(img, ax=ax, format="%+2.f dB")
     # plt.show()
     print("main")
-    pre_process("../dataset/train")
+    pre_process("./dataset/train")
 
 
 if __name__ == '__main__':

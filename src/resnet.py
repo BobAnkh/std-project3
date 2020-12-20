@@ -93,13 +93,13 @@ class BottleNeck(nn.Module):
 
 
 class ResNet(nn.Module):
-    def __init__(self, block, num_block, num_classes=10):
+    def __init__(self, input_channel, block, num_block, num_classes=10):
         super().__init__()
 
         self.in_channels = 64
 
         self.conv1 = nn.Sequential(
-            nn.Conv2d(4, 64, kernel_size=3, padding=1, bias=False),
+            nn.Conv2d(input_channel, 64, kernel_size=3, padding=1, bias=False),
             nn.BatchNorm2d(64), nn.ReLU(inplace=True))
         # we use a different inputsize than the original paper
         # so conv2_x's stride is 1
@@ -146,31 +146,41 @@ class ResNet(nn.Module):
         return output
 
 
-def resnet18():
+def resnet18(input_channel, num_classes=10):
     """ return a ResNet 18 object
     """
-    return ResNet(BasicBlock, [2, 2, 2, 2])
+    return ResNet(input_channel,
+                  BasicBlock, [2, 2, 2, 2],
+                  num_classes=num_classes)
 
 
-def resnet34():
+def resnet34(input_channel, num_classes=10):
     """ return a ResNet 34 object
     """
-    return ResNet(BasicBlock, [3, 4, 6, 3])
+    return ResNet(input_channel,
+                  BasicBlock, [3, 4, 6, 3],
+                  num_classes=num_classes)
 
 
-def resnet50():
+def resnet50(input_channel, num_classes=10):
     """ return a ResNet 50 object
     """
-    return ResNet(BottleNeck, [3, 4, 6, 3])
+    return ResNet(input_channel,
+                  BottleNeck, [3, 4, 6, 3],
+                  num_classes=num_classes)
 
 
-def resnet101():
+def resnet101(input_channel, num_classes=10):
     """ return a ResNet 101 object
     """
-    return ResNet(BottleNeck, [3, 4, 23, 3])
+    return ResNet(input_channel,
+                  BottleNeck, [3, 4, 23, 3],
+                  num_classes=num_classes)
 
 
-def resnet152():
+def resnet152(input_channel, num_classes=10):
     """ return a ResNet 152 object
     """
-    return ResNet(BottleNeck, [3, 8, 36, 3])
+    return ResNet(input_channel,
+                  BottleNeck, [3, 8, 36, 3],
+                  num_classes=num_classes)
