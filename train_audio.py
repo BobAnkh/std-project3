@@ -11,7 +11,7 @@ from src.dataloader import AudioTrainDataset
 from src.model import AudioEmbed
 
 
-def train_task1(root_path, model_wts_path='./audio_resnet_ft.pth', num_epochs=50):
+def train_task1(root_path, model_wts_path='./audio_resnet_ft.pth', num_epochs=100, batch_size=64):
     '''
     :param root_path: root path of test data, e.g. ./dataset/task1/test/
     :return results: a dict of classification results
@@ -35,8 +35,8 @@ def train_task1(root_path, model_wts_path='./audio_resnet_ft.pth', num_epochs=50
     [train, val] = torch.utils.data.random_split(
         trainData, dataset_sizes.values())
 
-    trainLoader = DataLoader(train, batch_size=4)
-    valLoader = DataLoader(val, batch_size=4)
+    trainLoader = DataLoader(train, batch_size=batch_size)
+    valLoader = DataLoader(val, batch_size=batch_size)
     dataloaders = {'train': trainLoader, 'val': valLoader}
 
     mod = AudioEmbed()
@@ -45,13 +45,13 @@ def train_task1(root_path, model_wts_path='./audio_resnet_ft.pth', num_epochs=50
     # device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
     if torch.cuda.device_count() > 1:
         print("Let's use", torch.cuda.device_count(), "GPUs!")
-        # dim = 0 [30, xxx] -> [10, ...], [10, ...], [10, ...] on 3 GPUs
         mod = nn.DataParallel(mod)
     mod.cuda()
 
     optimizer = optim.Adam(mod.parameters(), lr=0.001)
     criterion = nn.CrossEntropyLoss()
-    scheduler = lr_scheduler.StepLR(optimizer, step_size=25, gamma=0.1)
+    scheduler = lr_scheduler.MultiStepLR(optimizer, [20, 40], gamma=0.1)
+    # scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=7, verbose=False, threshold=0.0001, threshold_mode='rel', cooldown=0, min_lr=0, eps=1e-08)
     since = time.time()
     # for batch_ndx, sample in enumerate(trainLoader):
     #     # print(batch_ndx, sample, sample["audio"].shape, sample["rgb"].shape)
@@ -96,11 +96,12 @@ def train_task1(root_path, model_wts_path='./audio_resnet_ft.pth', num_epochs=50
                 # statistics
                 running_loss += loss.item() * inputs.size(0)
                 running_corrects += torch.sum(preds == labels.data)
-            if phase == 'train':
-                scheduler.step()
 
             epoch_loss = running_loss / dataset_sizes[phase]
             epoch_acc = running_corrects.double() / dataset_sizes[phase]
+
+            if phase == 'train':
+                scheduler.step()
 
             print('{} Loss: {:.4f} Acc: {:.4f}'.format(
                 phase, epoch_loss, epoch_acc))
@@ -111,7 +112,9 @@ def train_task1(root_path, model_wts_path='./audio_resnet_ft.pth', num_epochs=50
             if phase == 'val' and epoch_acc > best_acc:
                 best_acc = epoch_acc
                 best_model_wts = copy.deepcopy(mod.state_dict())
+        # scheduler.step(epoch_acc)
     time_elapsed = time.time() - since
+    print('-' * 10)
     print('Training complete in {:.0f}m {:.0f}s'.format(
         time_elapsed // 60, time_elapsed % 60))
     print('Best val Acc: {:4f}'.format(best_acc))
@@ -119,6 +122,7 @@ def train_task1(root_path, model_wts_path='./audio_resnet_ft.pth', num_epochs=50
     # load best model weights
     mod.load_state_dict(best_model_wts)
     torch.save(mod.module.state_dict(), model_wts_path)
+    print('Model weights saved at', model_wts_path)
     return mod
 
 
