@@ -1,10 +1,11 @@
 from PIL import Image
+from torchvision import transforms
+import glob
+import json
 import numpy as np
 import os
 import re
 import torch
-import glob
-from torchvision import transforms
 
 label = {
     '061_foam_brick': 0,
@@ -91,4 +92,38 @@ class VideoTrainDataset(torch.utils.data.Dataset):
         rgb = self.transform(Image.open(rgb_img_dir[0]))  # only load first one
         data["rgb"] = rgb
 
+        return data
+
+
+class ActionDataset(torch.utils.data.Dataset):
+    def __init__(self, path: str, basePath: str) -> None:
+        """
+        path: center and angle, json file
+        basePath: train audio data dir path
+        """
+        super().__init__()
+        self.path = path
+        data = json.load(open(self.path))
+        self.data = [{
+            "class": label[key],
+            "label": la,
+            "angle": li[-1],
+            "dir": os.path.join(basePath, key, la, "audio_data.npy")
+        } for key, value in data.items() for la, li in value.items()]
+        self.transform = transforms.Compose(
+            [transforms.ToTensor(),
+             transforms.Resize([128, 172])])
+
+    def __len__(self):
+        return len(self.data)
+
+    def __getitem__(self, idx):
+        data_dir = self.data[idx]
+        data = {
+            "class": data_dir["class"],
+            "label": data_dir["label"],
+            "angle": data_dir["angle"]
+        }
+        audio = np.load(data_dir["dir"]).transpose(1, 2, 0)
+        data["audio"] = self.transform(audio)
         return data
