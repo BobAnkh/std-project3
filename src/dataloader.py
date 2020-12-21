@@ -38,14 +38,20 @@ class AudioTrainDataset(torch.utils.data.Dataset):
                     for i in glob.glob(os.path.join(path, "**/*.npy"),
                                        recursive=True)]))
 
+        self.transform = transforms.Compose(
+            [transforms.ToTensor(),
+             transforms.Resize([128, 172])])
+
     def __len__(self):
         return len(self.data_dir)
 
     def __getitem__(self, idx):
         data_dir = self.data_dir[idx]
         data = {"class": data_dir["class"], "label": data_dir["label"]}
-        audio = np.load(data_dir["dir"])
-        data["audio"] = audio
+        audio = np.load(data_dir["dir"]).transpose(1, 2, 0)
+        data["audio"] = self.transform(audio)
+        # audio = np.load(data_dir["dir"])
+        # data["audio"] = audio
 
         return data
 
