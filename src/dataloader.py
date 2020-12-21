@@ -1,10 +1,11 @@
 from PIL import Image
+from torchvision import transforms
+import glob
+import json
 import numpy as np
 import os
 import re
 import torch
-import glob
-from torchvision import transforms
 
 label = {
     '061_foam_brick': 0,
@@ -67,7 +68,7 @@ class VideoTrainDataset(torch.utils.data.Dataset):
             "label": i,
             "dir": os.path.join(self.path, c, i)
         } for c in self.labels if not re.match(r".+\.rar", c)
-                         for i in os.listdir(os.path.join(self.path, c))]
+            for i in os.listdir(os.path.join(self.path, c))]
         self.transform = transforms.Compose(
             [transforms.ToTensor(),
              transforms.Resize([48, 64])])
@@ -92,3 +93,18 @@ class VideoTrainDataset(torch.utils.data.Dataset):
         data["rgb"] = rgb
 
         return data
+
+
+class ActionDataset(torch.utils.data.Dataset):
+    def __init__(self, path: str) -> None:
+        super().__init__()
+        self.path = path
+        data = json.load(open(self.path))
+        self.data = [{"class": label[key], "label":la, "angle":li[-1]}
+                     for key, value in data.items() for la, li in value.items()]
+
+    def __len__(self):
+        return len(self.data)
+
+    def __getitem__(self, idx):
+        return self.data[idx]
