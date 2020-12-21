@@ -68,7 +68,7 @@ class VideoTrainDataset(torch.utils.data.Dataset):
             "label": i,
             "dir": os.path.join(self.path, c, i)
         } for c in self.labels if not re.match(r".+\.rar", c)
-            for i in os.listdir(os.path.join(self.path, c))]
+                         for i in os.listdir(os.path.join(self.path, c))]
         self.transform = transforms.Compose(
             [transforms.ToTensor(),
              transforms.Resize([48, 64])])
@@ -104,17 +104,26 @@ class ActionDataset(torch.utils.data.Dataset):
         super().__init__()
         self.path = path
         data = json.load(open(self.path))
-        self.data = [{"class": label[key], "label":la, "angle":li[-1], "dir":os.path.join(basePath, key, la, "audio_data.npy")}
-                     for key, value in data.items() for la, li in value.items()]
+        self.data = [{
+            "class": label[key],
+            "label": la,
+            "angle": li[-1],
+            "dir": os.path.join(basePath, key, la, "audio_data.npy")
+        } for key, value in data.items() for la, li in value.items()]
+        self.transform = transforms.Compose(
+            [transforms.ToTensor(),
+             transforms.Resize([128, 172])])
 
     def __len__(self):
         return len(self.data)
 
     def __getitem__(self, idx):
         data_dir = self.data[idx]
-        data = {"class": data_dir["class"],
-                "label": data_dir["label"],
-                "angle": data_dir["angle"]}
+        data = {
+            "class": data_dir["class"],
+            "label": data_dir["label"],
+            "angle": data_dir["angle"]
+        }
         audio = np.load(data_dir["dir"]).transpose(1, 2, 0)
-        data["audio"] = audio
+        data["audio"] = self.transform(audio)
         return data
