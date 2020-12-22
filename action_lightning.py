@@ -5,14 +5,17 @@ from torch import nn
 import torch.nn.functional as F
 from torch.utils.data import DataLoader, random_split
 import pytorch_lightning as pl
+from torch.optim import lr_scheduler
 from src.dataloader import ActionDataset
-from src.resnet import resnet34
+from src.resnet import resnet50
+from src.resnetv2 import resnet110
+from pytorch_lightning.callbacks import ModelCheckpoint
 
 
 class LitCNN(pl.LightningModule):
     def __init__(self):
         super().__init__()
-        self.resnet = resnet34(4, num_classes=1)
+        self.resnet = resnet110(4, num_class=1)
 
     def forward(self, x):
         output = self.resnet(x)
@@ -21,7 +24,7 @@ class LitCNN(pl.LightningModule):
     def training_step(self, batch, batch_idx):
         # training_step defined the train loop.
         # It is independent of forward
-        inputs = batch["audio"]
+        inputs = batch["audio"].float()
         labels = batch["angle"].float()
         outputs = self(inputs)
         loss = F.mse_loss(outputs, torch.unsqueeze(labels, 1))
@@ -40,7 +43,7 @@ class LitCNN(pl.LightningModule):
         return
 
     def validation_step(self, batch, batch_idx):
-        inputs = batch["audio"]
+        inputs = batch["audio"].float()
         labels = batch["angle"].float()
         outputs = self(inputs)
         loss = F.mse_loss(outputs, torch.unsqueeze(labels, 1))
@@ -60,7 +63,8 @@ class LitCNN(pl.LightningModule):
 
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.parameters(), lr=1e-3)
-        return optimizer
+        scheduler = lr_scheduler.MultiStepLR(optimizer, [200, 400], gamma=0.1)
+        return [optimizer], [scheduler]
 
 
 trainData = ActionDataset("./mask_processed.json", "./dataset/train")
@@ -70,11 +74,19 @@ dataset_sizes = {
 }
 [train, val] = random_split(trainData, dataset_sizes.values())
 
-trainLoader = DataLoader(train, batch_size=8)
-valLoader = DataLoader(val, batch_size=8)
+trainLoader = DataLoader(train, batch_size=16, num_workers=os.cpu_count())
+valLoader = DataLoader(val, batch_size=16, num_workers=os.cpu_count())
 dataloaders = {'train': trainLoader, 'val': valLoader}
 
-trainer = pl.Trainer(gpus=1, max_epochs=200)
+checkpoint_callback = ModelCheckpoint(
+    monitor='val_sim',
+    dirpath='lightning_logs/weights/',
+    filename='action-{epoch:02d}-{val_sim:.4f}',
+    save_top_k=1,
+    mode='max',
+)
+trainer = pl.Trainer(gpus=2, accelerator='ddp', max_epochs=500, callbacks=[checkpoint_callback])
 model = LitCNN()
+
 
 trainer.fit(model, train_dataloader=trainLoader, val_dataloaders=valLoader)
