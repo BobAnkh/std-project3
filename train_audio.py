@@ -36,8 +36,8 @@ def train_task1(root_path, model_wts_path='./audio_resnet_ft.pth', num_epochs=10
     [train, val] = torch.utils.data.random_split(
         trainData, dataset_sizes.values())
 
-    trainLoader = DataLoader(train, batch_size=batch_size, num_workers=os.os.cpu_count())
-    valLoader = DataLoader(val, batch_size=batch_size, num_workers=os.os.cpu_count())
+    trainLoader = DataLoader(train, batch_size=batch_size, num_workers=os.cpu_count())
+    valLoader = DataLoader(val, batch_size=batch_size, num_workers=os.cpu_count())
     dataloaders = {'train': trainLoader, 'val': valLoader}
 
     mod = AudioEmbed()
