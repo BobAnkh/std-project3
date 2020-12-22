@@ -9,7 +9,7 @@ from torch.optim import lr_scheduler
 from src.dataloader import ActionDataset
 from src.resnet import resnet50
 from src.resnetv2 import resnet110
-from pytorch_lightning.callbacks import ModelCheckpoint
+from pytorch_lightning.callbacks import ModelCheckpoint, EarlyStopping
 
 
 class LitCNN(pl.LightningModule):
@@ -85,8 +85,16 @@ checkpoint_callback = ModelCheckpoint(
     save_top_k=1,
     mode='max',
 )
-trainer = pl.Trainer(gpus=2, accelerator='ddp', max_epochs=500, callbacks=[checkpoint_callback])
+early_stop_callback = EarlyStopping(
+    monitor='val_sim',
+    min_delta=1e-2,
+    patience=20,
+    mode='max',
+)
+trainer = pl.Trainer(gpus=2,
+                     accelerator='ddp',
+                     max_epochs=500,
+                     callbacks=[checkpoint_callback, early_stop_callback])
 model = LitCNN()
-
 
 trainer.fit(model, train_dataloader=trainLoader, val_dataloaders=valLoader)
