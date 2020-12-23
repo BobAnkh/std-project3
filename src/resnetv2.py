@@ -114,7 +114,7 @@ class Bottleneck(nn.Module):
 
 
 class ResNet_CIFAR10(nn.Module):
-    def __init__(self, input_channel, block, layers, num_classes=10):
+    def __init__(self, input_channel, block, layers, num_classes=10, bn=64):
         super(ResNet_CIFAR10, self).__init__()
         self.inplanes = 16
         self.conv1 = nn.Conv2d(input_channel,
@@ -126,7 +126,7 @@ class ResNet_CIFAR10(nn.Module):
         self.layer1 = self._make_layer(block, 16, layers[0])
         self.layer2 = self._make_layer(block, 32, layers[1], stride=2)
         self.layer3 = self._make_layer(block, 64, layers[2], stride=2)
-        self.bn3 = nn.BatchNorm2d(256)
+        self.bn3 = nn.BatchNorm2d(bn)
         self.relu = nn.ReLU(inplace=True)
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
         self.fc = nn.Linear(64 * block.expansion, num_classes)
@@ -192,14 +192,14 @@ def resnet32(input_channel, pretrained=False, num_class=10):
 
 
 def resnet44(input_channel, pretrained=False, num_class=10):
-    model = ResNet_CIFAR10(input_channel, Bottleneck, [7, 7, 7, 7], num_class)
+    model = ResNet_CIFAR10(input_channel, Bottleneck, [7, 7, 7, 7], num_class, bn=256)
     if pretrained:
         model.load_state_dict(model_zoo.load_url(model_urls['resnet44']))
     return model
 
 
 def resnet110(input_channel, pretrained=False, num_class=10):
-    model = ResNet_CIFAR10(input_channel, Bottleneck, [18, 18, 18, 18], num_class)
+    model = ResNet_CIFAR10(input_channel, Bottleneck, [18, 18, 18, 18], num_class, bn=256)
     if pretrained:
         model.load_state_dict(model_zoo.load_url(model_urls['resnet110']))
     return model
