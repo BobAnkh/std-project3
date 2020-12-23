@@ -73,19 +73,6 @@ dataset_sizes = {
 trainLoader = DataLoader(trainData, batch_size=32, num_workers=os.cpu_count())
 
 
-checkpoint_callback = ModelCheckpoint(
-    monitor='val_acc',
-    dirpath='lightning_logs/weights/',
-    filename='audio-{epoch:02d}-{val_acc:.4f}-{train_acc:.4f}',
-    save_top_k=1,
-    mode='max',
-)
-# early_stop_callback = EarlyStopping(
-#     monitor='val_acc',
-#     min_delta=1e-3,
-#     patience=20,
-#     mode='max',
-# )
 trainer = pl.Trainer(gpus=1,
                      max_epochs=100)
 model = LitCNN().load_from_checkpoint('lightning_logs/version_4/audio-epoch=56-val_acc=0.9922.ckpt')
@@ -102,7 +89,7 @@ for sample in trainLoader:
             {"class": sample["class"][i].detach().cpu().numpy().tolist(),
              "label": sample["label"][i],
              "outputs": outputs[i].detach().cpu().numpy().tolist(),
-             "pred": preds[i].detach().cpu().numpy().tolist()}, range(len(sample))))
+             "pred": preds[i].detach().cpu().numpy().tolist()}, range(len(sample['class']))))
     out_rel.append(tmp)
 
-json.dump(out_rel, open('train_all_results.json', 'w', encoding='utf-8'), ensure_ascii=False)
+json.dump(out_rel, open('audio_train_all_results.json', 'w', encoding='utf-8'), ensure_ascii=False)
