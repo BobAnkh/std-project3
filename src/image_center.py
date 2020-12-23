@@ -5,11 +5,25 @@ import os
 import cv2
 from tqdm import tqdm
 
+label = {
+    '061_foam_brick': 0,
+    'green_basketball': 1,
+    'salt_cylinder': 2,
+    'shiny_toy_gun': 3,
+    'stanley_screwdriver': 4,
+    'strawberry': 5,
+    'toothpaste_box': 6,
+    'toy_elephant': 7,
+    'whiteboard_spray': 8,
+    'yellow_block': 9,
+}
+
 
 def pre_process(base_path):
     print(base_path)
     object_folders = os.listdir(base_path)
     object_info = {}
+    object_list = []
     for object_folder in tqdm(object_folders):
         hit_segments = os.listdir(os.path.join(base_path, object_folder))
         direct_info = {}
@@ -31,15 +45,18 @@ def pre_process(base_path):
                 # cv2.imwrite('tmp.png', mask)
             angle = math.atan2(mask_centers[-1][1] - mask_centers[0][1], mask_centers[-1][0] - mask_centers[0][0]) * 180 / math.pi
             direct_info[hit_segment] = [mask_centers[0], mask_centers[-1], angle]
-        object_info[object_folder] = direct_info
+            direct_dict = {'class': label[object_folder], 'label': hit_segment, 'angle': angle}
+            object_list.append(direct_dict)
+        object_info[label[object_folder]] = direct_info
 
-    return object_info
+    return object_info, object_list
 
 
 def main():
     print('main')
-    object_info = pre_process('dataset/train')
+    object_info, object_list = pre_process('dataset/train')
     json.dump(object_info, open('mask_processed.json', 'w', encoding='utf-8'), ensure_ascii=False)
+    json.dump(object_list, open('mask_angle.json', 'w', encoding='utf-8'), ensure_ascii=False)
 
 
 if __name__ == '__main__':
