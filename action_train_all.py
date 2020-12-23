@@ -80,7 +80,7 @@ trainLoader = DataLoader(trainData, batch_size=8, num_workers=os.cpu_count())
 
 trainer = pl.Trainer(gpus=1,
                      max_epochs=100)
-model = LitCNN().load_from_checkpoint('lightning_logs/version_0/action-epoch=351-val_sim=0.9608.ckpt')
+model = LitCNN().load_from_checkpoint('weights/action-resnet110.ckpt')
 model.cuda()
 model.eval()
 # trainer.test(model, test_dataloaders=trainLoader)

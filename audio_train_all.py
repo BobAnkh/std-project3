@@ -75,7 +75,7 @@ trainLoader = DataLoader(trainData, batch_size=32, num_workers=os.cpu_count())
 
 trainer = pl.Trainer(gpus=1,
                      max_epochs=100)
-model = LitCNN().load_from_checkpoint('lightning_logs/version_4/audio-epoch=56-val_acc=0.9922.ckpt')
+model = LitCNN().load_from_checkpoint('weights/audio-resnet20.ckpt')
 model.cuda()
 model.eval()
 # trainer.test(model, test_dataloaders=trainLoader)
