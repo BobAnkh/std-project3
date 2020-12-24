@@ -91,7 +91,7 @@ for sample in trainLoader:
     inputs = sample["audio"].float().cuda()
     outputs = model(inputs)
     tmp = list(map(lambda i:
-            {"class": sample["class"][i].detach().cpu().numpy().tolist(),
+            {"class": int(sample["class"][i]),
              "label": sample["label"][i],
              "angle": sample["angle"][i].detach().cpu().numpy().tolist(),
              "outputs": outputs[i].detach().cpu().numpy().tolist()
