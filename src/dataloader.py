@@ -20,6 +20,19 @@ label = {
     'yellow_block': 9,
 }
 
+new_label = {
+    '0': '061_foam_brick',
+    '1': 'green_basketball',
+    '2': 'salt_cylinder',
+    '3': 'shiny_toy_gun',
+    '4': 'stanley_screwdriver',
+    '5': 'strawberry',
+    '6': 'toothpaste_box',
+    '7': 'toy_elephant',
+    '8': 'whiteboard_spray',
+    '9': 'yellow_block',
+}
+
 
 class AudioTrainDataset(torch.utils.data.Dataset):
     def __init__(self, path: str = "./dataset/train") -> None:
@@ -40,8 +53,7 @@ class AudioTrainDataset(torch.utils.data.Dataset):
                                        recursive=True)]))
 
         self.transform = transforms.Compose(
-            [transforms.ToTensor(),
-             transforms.Resize([128, 172])])
+            [transforms.ToTensor()])
 
     def __len__(self):
         return len(self.data_dir)
@@ -105,11 +117,11 @@ class ActionDataset(torch.utils.data.Dataset):
         self.path = path
         data = json.load(open(self.path))
         self.data = [{
-            "class": label[key],
+            "class": key,
             "label": la,
-            "end":np.array(li[1]),
+            "end": np.array(li[1]),
             "angle": li[-1],
-            "dir": os.path.join(basePath, key, la, "audio_data.npy")
+            "dir": os.path.join(basePath, new_label[key], la, "audio_data.npy")
         } for key, value in data.items() for la, li in value.items()]
         self.transform = transforms.Compose(
             [transforms.ToTensor(),
