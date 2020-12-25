@@ -1,7 +1,11 @@
-from src.dataloader import trainDataset
-from src.model import VideoEmbed
+import json
+import os
 
+import torch
 from torch.utils.data.dataloader import DataLoader
+
+from src.dataloader import AudioTestDataset
+from src.model import AudioClassifier
 
 
 def test_task1(root_path):
@@ -21,16 +25,25 @@ def test_task1(root_path):
         'whiteboard_spray': 8
         'yellow_block': 9
     '''
-    trainData = trainDataset(root_path, True, True)
-    trainLoader = DataLoader(trainData, batch_size=1)
-    mod = VideoEmbed()
+    test_data = AudioTestDataset(root_path)
+    test_loader = DataLoader(test_data,
+                             batch_size=1,
+                             num_workers=os.cpu_count())
+    model = AudioClassifier().load_from_checkpoint('weights/audio-resnet20.ckpt')
+    model.cuda()
+    model.eval()
 
-    for batch_ndx, sample in enumerate(trainLoader):
-        # print(batch_ndx, sample, sample["audio"].shape, sample["rgb"].shape)
-        print(mod(sample["rgb"]).shape)
-        break
+    results = {}
+    for sample in test_loader:
+        inputs = sample["audio"].float().cuda()
+        outputs = model(inputs)
+        _, preds = torch.max(outputs, 1)
+        mapper = map(
+            lambda i:
+            (sample['label'][i], preds[i].detach().cpu().numpy().tolist()),
+            range(len(sample['label'])))
+        results.update(mapper)
 
-    results = None
     return results
 
 
@@ -57,4 +70,7 @@ def test_task3(root_path):
 
 
 if __name__ == "__main__":
-    test_task1("./dataset/train")
+    task1 = test_task1("./dataset/task1/test")
+    json.dump(task1,
+              open('task1_results.json', 'w', encoding='utf-8'),
+              ensure_ascii=False)
