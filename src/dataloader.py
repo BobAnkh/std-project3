@@ -45,12 +45,11 @@ class AudioTrainDataset(torch.utils.data.Dataset):
                     "class": label[tup[0][-3]],
                     "label": tup[0][-2],
                     "dir": tup[1]
-                }, [(re.split(r"[/\\]", i), i)
-                    for i in glob.glob(os.path.join(path, "**/*.npy"),
-                                       recursive=True)]))
+                }, [(re.split(r"[/\\]", i), i) for i in sorted(
+                    glob.glob(os.path.join(path, "**/*.npy"), recursive=True))
+                    ]))
 
-        self.transform = transforms.Compose(
-            [transforms.ToTensor()])
+        self.transform = transforms.Compose([transforms.ToTensor()])
 
     def __len__(self):
         return len(self.data_dir)
@@ -76,11 +75,11 @@ class AudioTestDataset(torch.utils.data.Dataset):
                 lambda tup: {
                     "label": tup[0][-1].replace('npy', 'pkl'),
                     "dir": tup[1]
-                }, [(re.split(r"[/\\]", i), i)
-                    for i in sorted(glob.glob(os.path.join(path, "**/*.npy"), recursive=True))]))
+                }, [(re.split(r"[/\\]", i), i) for i in sorted(
+                    glob.glob(os.path.join(path, "**/*.npy"), recursive=True))
+                    ]))
 
-        self.transform = transforms.Compose(
-            [transforms.ToTensor()])
+        self.transform = transforms.Compose([transforms.ToTensor()])
 
     def __len__(self):
         return len(self.data_dir)
@@ -97,14 +96,14 @@ class VideoTrainDataset(torch.utils.data.Dataset):
     def __init__(self, path: str = "./dataset/train") -> None:
         super().__init__()
         self.path = path
-        self.labels = os.listdir(self.path)
+        self.labels = sorted(os.listdir(self.path))
         self.data_dir = [{
             "class_name": c,
             "class": label[c],
             "label": i,
             "dir": os.path.join(self.path, c, i)
         } for c in self.labels if not re.match(r".+\.rar", c)
-            for i in os.listdir(os.path.join(self.path, c))]
+            for i in sorted(os.listdir(os.path.join(self.path, c)))]
         self.transform = transforms.Compose(
             [transforms.ToTensor(),
              transforms.Resize([48, 64])])
@@ -135,14 +134,12 @@ class VideoTestDataset(torch.utils.data.Dataset):
     def __init__(self, path: str = "./dataset/task2/test") -> None:
         super().__init__()
         self.path = path
-        self.group = os.listdir(self.path)
+        self.group = sorted(os.listdir(self.path))
         self.data_dir = [{
-            "group": g,
-            "label": i,
-            "dir": os.path.join(self.path, g, i)
+            "label": g,
+            "dir": os.path.join(self.path, g)
         }
-            for g in self.group
-            for i in os.listdir(os.path.join(self.path, g)) if not re.match(r".+\.(pkl|npy)", i)]
+            for g in self.group if not re.match(r".+\.(pkl|npy)", g)]
 
         self.transform = transforms.Compose(
             [transforms.ToTensor(),
@@ -153,8 +150,9 @@ class VideoTestDataset(torch.utils.data.Dataset):
 
     def __getitem__(self, idx):
         data_dir = self.data_dir[idx]
-        data = {"group": data_dir["group"],
-                "label": int(data_dir["label"].split()[-1])}
+        data = {
+            "label": data_dir["label"]
+        }
         rgb_img_dir = [
             os.path.join(data_dir["dir"], "rgb", i)
             for i in sorted(os.listdir(os.path.join(data_dir["dir"], "rgb")))
@@ -192,10 +190,12 @@ class ActionTrainDataset(torch.utils.data.Dataset):
     def __getitem__(self, idx):
         data_dir = self.data[idx]
 
-        data = {"class": data_dir["class"],
-                "label": data_dir["label"],
-                "end": data_dir["end"],
-                "angle": data_dir["angle"]}
+        data = {
+            "class": data_dir["class"],
+            "label": data_dir["label"],
+            "end": data_dir["end"],
+            "angle": data_dir["angle"]
+        }
         audio = np.load(data_dir["dir"]).transpose(1, 2, 0)
         data["audio"] = self.transform(audio)
         return data
