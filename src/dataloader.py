@@ -69,6 +69,33 @@ class AudioTrainDataset(torch.utils.data.Dataset):
         return data
 
 
+class AudioTestDataset(torch.utils.data.Dataset):
+    def __init__(self, path: str = "./dataset/task1/test") -> None:
+        super().__init__()
+        self.path = path
+        self.labels = os.listdir(self.path)
+        self.data_dir = list(
+            map(
+                lambda tup: {
+                    "label": tup[0][-1].replace('npy', 'pkl'),
+                    "dir": tup[1]
+                }, [(re.split(r"[/\\]", i), i)
+                    for i in sorted(glob.glob(os.path.join(path, "**/*.npy"), recursive=True))]))
+
+        self.transform = transforms.Compose(
+            [transforms.ToTensor()])
+
+    def __len__(self):
+        return len(self.data_dir)
+
+    def __getitem__(self, idx):
+        data_dir = self.data_dir[idx]
+        data = {"label": data_dir["label"]}
+        audio = np.load(data_dir["dir"]).transpose(1, 2, 0)
+        data["audio"] = self.transform(audio)
+        return data
+
+
 class VideoTrainDataset(torch.utils.data.Dataset):
     def __init__(self, path: str = "./dataset/train") -> None:
         super().__init__()
