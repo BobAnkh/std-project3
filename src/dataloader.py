@@ -18,16 +18,16 @@ label = {
     'toy_elephant': 7,
     'whiteboard_spray': 8,
     'yellow_block': 9,
-    0: '061_foam_brick',
-    1: 'green_basketball',
-    2: 'salt_cylinder',
-    3: 'shiny_toy_gun',
-    4: 'stanley_screwdriver',
-    5: 'strawberry',
-    6: 'toothpaste_box',
-    7: 'toy_elephant',
-    8: 'whiteboard_spray',
-    9: 'yellow_block',
+    '0': '061_foam_brick',
+    '1': 'green_basketball',
+    '2': 'salt_cylinder',
+    '3': 'shiny_toy_gun',
+    '4': 'stanley_screwdriver',
+    '5': 'strawberry',
+    '6': 'toothpaste_box',
+    '7': 'toy_elephant',
+    '8': 'whiteboard_spray',
+    '9': 'yellow_block',
 }
 
 
@@ -166,7 +166,7 @@ class VideoTestDataset(torch.utils.data.Dataset):
         return data
 
 
-class ActionDataset(torch.utils.data.Dataset):
+class ActionTrainDataset(torch.utils.data.Dataset):
     def __init__(self, path: str, basePath: str) -> None:
         """
         path: center and angle, json file
