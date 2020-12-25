@@ -3,6 +3,7 @@ import librosa
 import numpy as np
 import os
 import pickle as pkl
+from tqdm import tqdm
 
 SR_ORIGIN = 44100
 SR_DOWN = 11000
@@ -36,9 +37,9 @@ def pre_process(basePath):
     """
     print(basePath)
     audio_files = glob.glob(os.path.join(basePath, "**/*.pkl"), recursive=True)
-    for path in audio_files:
+    audio_files.sort()
+    for path in tqdm(audio_files):
         stft = audio_process(path)
-        print(path)
         np.save(os.path.splitext(path)[0], stft)
 
 
