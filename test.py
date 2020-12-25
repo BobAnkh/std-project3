@@ -6,6 +6,7 @@ from torch.utils.data.dataloader import DataLoader
 
 from src.dataloader import AudioTestDataset
 from src.model import AudioClassifier
+from src.audio_process import pre_process
 
 
 def test_task1(root_path):
@@ -25,6 +26,9 @@ def test_task1(root_path):
         'whiteboard_spray': 8
         'yellow_block': 9
     '''
+    print('Pre-processing audio data!')
+    pre_process(root_path)
+    print('Starting test!')
     test_data = AudioTestDataset(root_path)
     test_loader = DataLoader(test_data,
                              batch_size=1,
@@ -54,6 +58,8 @@ def test_task2(root_path):
     results = {'audio_0000.pkl': 23, ‘audio_0001’: 11, ...}
     This means audio 'audio_0000.pkl' is matched to video 'video_0023' and ‘audio_0001’ is matched to 'video_0011'.
     '''
+    print('Pre-processing audio data!')
+    pre_process(root_path)
     results = None
     return results
 
@@ -65,6 +71,8 @@ def test_task3(root_path):
     results = {'audio_0000.pkl': -1, ‘audio_0001’: 12, ...}
     This means audio 'audio_0000.pkl' is not matched to any video and ‘audio_0001’ is matched to 'video_0012'.
     '''
+    print('Pre-processing audio data!')
+    pre_process(root_path)
     results = None
     return results
 
