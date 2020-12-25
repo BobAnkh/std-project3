@@ -18,19 +18,16 @@ label = {
     'toy_elephant': 7,
     'whiteboard_spray': 8,
     'yellow_block': 9,
-}
-
-new_label = {
-    '0': '061_foam_brick',
-    '1': 'green_basketball',
-    '2': 'salt_cylinder',
-    '3': 'shiny_toy_gun',
-    '4': 'stanley_screwdriver',
-    '5': 'strawberry',
-    '6': 'toothpaste_box',
-    '7': 'toy_elephant',
-    '8': 'whiteboard_spray',
-    '9': 'yellow_block',
+    0: '061_foam_brick',
+    1: 'green_basketball',
+    2: 'salt_cylinder',
+    3: 'shiny_toy_gun',
+    4: 'stanley_screwdriver',
+    5: 'strawberry',
+    6: 'toothpaste_box',
+    7: 'toy_elephant',
+    8: 'whiteboard_spray',
+    9: 'yellow_block',
 }
 
 
@@ -134,6 +131,41 @@ class VideoTrainDataset(torch.utils.data.Dataset):
         return data
 
 
+class VideoTestDataset(torch.utils.data.Dataset):
+    def __init__(self, path: str = "./dataset/task2/test") -> None:
+        super().__init__()
+        self.path = path
+        self.group = os.listdir(self.path)
+        self.data_dir = [{
+            "group": g,
+            "label": i,
+            "dir": os.path.join(self.path, g, i)
+        }
+            for g in self.group
+            for i in os.listdir(os.path.join(self.path, g)) if not re.match(r".+\.(pkl|npy)", i)]
+
+        self.transform = transforms.Compose(
+            [transforms.ToTensor(),
+             transforms.Resize([48, 64])])
+
+    def __len__(self):
+        return len(self.data_dir)
+
+    def __getitem__(self, idx):
+        data_dir = self.data_dir[idx]
+        data = {"group": data_dir["group"],
+                "label": int(data_dir["label"].split()[-1])}
+        rgb_img_dir = [
+            os.path.join(data_dir["dir"], "rgb", i)
+            for i in sorted(os.listdir(os.path.join(data_dir["dir"], "rgb")))
+        ]
+
+        rgb = self.transform(Image.open(rgb_img_dir[0]))  # only load first one
+        data["rgb"] = rgb
+
+        return data
+
+
 class ActionDataset(torch.utils.data.Dataset):
     def __init__(self, path: str, basePath: str) -> None:
         """
@@ -148,7 +180,7 @@ class ActionDataset(torch.utils.data.Dataset):
             "label": la,
             "end": np.array(li[1]),
             "angle": li[-1],
-            "dir": os.path.join(basePath, new_label[key], la, "audio_data.npy")
+            "dir": os.path.join(basePath, label[key], la, "audio_data.npy")
         } for key, value in data.items() for la, li in value.items()]
         self.transform = transforms.Compose(
             [transforms.ToTensor(),
