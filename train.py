@@ -1,3 +1,4 @@
+import json
 import os
 
 import pytorch_lightning as pl
@@ -5,6 +6,7 @@ from pytorch_lightning.callbacks import ModelCheckpoint
 from torch.utils.data import DataLoader, random_split
 
 from src.dataloader import ActionTrainDataset, AudioTrainDataset, VideoTrainDataset
+from src.image_center import pre_process
 from src.model import ActionAngle, ActionLoc, AudioClassifier, ImageClassifier
 
 
@@ -113,6 +115,8 @@ def image_train(path):
 
 
 if __name__ == '__main__':
+    object_info, object_list = pre_process('dataset/train')
+    json.dump(object_info, open('mask_processed.json', 'w', encoding='utf-8'), ensure_ascii=False)
     audio_train('./dataset/train')
     action_angle_train('./dataset/train', 'mask_processed.json')
     action_loc_train('./dataset/train', 'mask_processed.json')
