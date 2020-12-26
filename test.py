@@ -35,10 +35,9 @@ def test_task1(root_path):
     pre_process(root_path)
     print('Starting test!')
     test_data = AudioTestDataset(root_path)
-    test_loader = DataLoader(test_data,
-                             batch_size=1,
-                             num_workers=os.cpu_count())
-    model = AudioClassifier().load_from_checkpoint('weights/audio-resnet20.ckpt')
+    test_loader = DataLoader(test_data, batch_size=1)
+    model = AudioClassifier().load_from_checkpoint(
+        'weights/audio-resnet20.ckpt')
     model.cuda()
     model.eval()
 
@@ -73,9 +72,9 @@ def test_task2(root_path):
     print('Image classification...')
     image_rel = []
     test_data1 = VideoTestDataset(root_path)
-    test_loader1 = DataLoader(
-        test_data1, batch_size=64, num_workers=os.cpu_count())
-    model1 = ImageClassifier().load_from_checkpoint('weights/image-resnet44.ckpt')
+    test_loader1 = DataLoader(test_data1, batch_size=16)
+    model1 = ImageClassifier().load_from_checkpoint(
+        'weights/image-resnet44.ckpt')
     model1.cuda()
     model1.eval()
     for sample in test_loader1:
@@ -93,10 +92,9 @@ def test_task2(root_path):
     print('Audio classification...')
     audio_rel = []
     test_data2 = AudioTestDataset(root_path)
-    test_loader2 = DataLoader(test_data2,
-                              batch_size=1,
-                              num_workers=os.cpu_count())
-    model2 = AudioClassifier().load_from_checkpoint('weights/audio-resnet20.ckpt')
+    test_loader2 = DataLoader(test_data2, batch_size=1)
+    model2 = AudioClassifier().load_from_checkpoint(
+        'weights/audio-resnet20.ckpt')
     model2.cuda()
     model2.eval()
     for sample in test_loader2:
@@ -114,9 +112,7 @@ def test_task2(root_path):
     print('Angle calculated...')
     angle_rel = []
     test_data3 = ActionTestDataset(root_path)
-    test_loader3 = DataLoader(test_data3,
-                              batch_size=1,
-                              num_workers=os.cpu_count())
+    test_loader3 = DataLoader(test_data3, batch_size=1)
     model3 = ActionAngle().load_from_checkpoint(
         'weights/action-angle-resnet110.ckpt')
     model3.cuda()
@@ -134,7 +130,8 @@ def test_task2(root_path):
 
     print('Location calculated...')
     loc_rel = []
-    model4 = ActionLoc().load_from_checkpoint('weights/action-loc-resnet110.ckpt')
+    model4 = ActionLoc().load_from_checkpoint(
+        'weights/action-loc-resnet110.ckpt')
     model4.cuda()
     model4.eval()
     for sample in test_loader3:
@@ -154,7 +151,10 @@ def test_task2(root_path):
     loc_rel = pd.json_normalize(sum(loc_rel, []))
     mask_list = pd.json_normalize(mask_list)
 
-    audio_info = pd.merge(pd.merge(audio_rel, angle_rel, on='label', how='outer'),
+    audio_info = pd.merge(pd.merge(audio_rel,
+                                   angle_rel,
+                                   on='label',
+                                   how='outer'),
                           loc_rel,
                           on='label',
                           how='outer')
@@ -165,10 +165,8 @@ def test_task2(root_path):
     info_classes = [classes.get_group(i).to_dict('records') for i in range(10)]
     results = [find_match(d) for d in info_classes]
     results = sorted(sum(results, []))
-    results = dict(list(map(
-        lambda i: (i[0], int(i[1].split('_')[-1])),
-        results
-    )))
+    results = dict(
+        list(map(lambda i: (i[0], int(i[1].split('_')[-1])), results)))
     for l in test_data2.data_dir:
         results.setdefault(l["label"], -1)
     print('----------Finish task2 test----------')
@@ -192,9 +190,9 @@ def test_task3(root_path):
     print('Image classification...')
     image_rel = []
     test_data1 = VideoTestDataset(root_path)
-    test_loader1 = DataLoader(
-        test_data1, batch_size=64, num_workers=os.cpu_count())
-    model1 = ImageClassifier().load_from_checkpoint('weights/image-resnet44.ckpt')
+    test_loader1 = DataLoader(test_data1, batch_size=16)
+    model1 = ImageClassifier().load_from_checkpoint(
+        'weights/image-resnet44.ckpt')
     model1.cuda()
     model1.eval()
     for sample in test_loader1:
@@ -212,10 +210,9 @@ def test_task3(root_path):
     print('Audio classification...')
     audio_rel = []
     test_data2 = AudioTestDataset(root_path)
-    test_loader2 = DataLoader(test_data2,
-                              batch_size=1,
-                              num_workers=os.cpu_count())
-    model2 = AudioClassifier().load_from_checkpoint('weights/audio-resnet20.ckpt')
+    test_loader2 = DataLoader(test_data2, batch_size=1)
+    model2 = AudioClassifier().load_from_checkpoint(
+        'weights/audio-resnet20.ckpt')
     model2.cuda()
     model2.eval()
     for sample in test_loader2:
@@ -233,9 +230,7 @@ def test_task3(root_path):
     print('Angle calculated...')
     angle_rel = []
     test_data3 = ActionTestDataset(root_path)
-    test_loader3 = DataLoader(test_data3,
-                              batch_size=1,
-                              num_workers=os.cpu_count())
+    test_loader3 = DataLoader(test_data3, batch_size=1)
     model3 = ActionAngle().load_from_checkpoint(
         'weights/action-angle-resnet110.ckpt')
     model3.cuda()
@@ -253,7 +248,8 @@ def test_task3(root_path):
 
     print('Location calculated...')
     loc_rel = []
-    model4 = ActionLoc().load_from_checkpoint('weights/action-loc-resnet110.ckpt')
+    model4 = ActionLoc().load_from_checkpoint(
+        'weights/action-loc-resnet110.ckpt')
     model4.cuda()
     model4.eval()
     for sample in test_loader3:
@@ -273,7 +269,10 @@ def test_task3(root_path):
     loc_rel = pd.json_normalize(sum(loc_rel, []))
     mask_list = pd.json_normalize(mask_list)
 
-    audio_info = pd.merge(pd.merge(audio_rel, angle_rel, on='label', how='outer'),
+    audio_info = pd.merge(pd.merge(audio_rel,
+                                   angle_rel,
+                                   on='label',
+                                   how='outer'),
                           loc_rel,
                           on='label',
                           how='outer')
@@ -284,10 +283,8 @@ def test_task3(root_path):
     info_classes = [classes.get_group(i).to_dict('records') for i in range(10)]
     results = [find_match(d) for d in info_classes]
     results = sorted(sum(results, []))
-    results = dict(list(map(
-        lambda i: (i[0], int(i[1].split('_')[-1])),
-        results
-    )))
+    results = dict(
+        list(map(lambda i: (i[0], int(i[1].split('_')[-1])), results)))
     for l in test_data2.data_dir:
         results.setdefault(l["label"], -1)
     print('----------Finish task3 test----------')
