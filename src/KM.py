@@ -118,6 +118,8 @@ class KuhnMunkres(object):
                     else:
                         if t >= zero_threshold:
                             self.minz = min(self.minz, t)
+                        else:
+                            self.minz = -min(self.minz, abs(t))
             else:
                 return False
 
@@ -167,6 +169,29 @@ def run_kuhn_munkres(x_y_values):
     process.set_matrix(x_y_values)
     process.km()
     return process.get_connect_result()
+
+
+def find_match(data_list):
+    """
+    data_list: same class data
+    [{}, {}, {}, ...]
+    """
+    data = [
+        (
+            item["label_x"],
+            item["label_y"],
+            -np.linalg.norm(
+                np.concatenate(
+                    (np.array(item["pos_net"]),
+                     np.array(item["angle_net"]))
+                )
+                - np.concatenate(
+                    (np.array(item["pos_mask"]),
+                     np.array(item["angle_mask"]).reshape(1,))
+                )
+            ))
+        for item in data_list]
+    return run_kuhn_munkres(data)
 
 
 if __name__ == '__main__':
