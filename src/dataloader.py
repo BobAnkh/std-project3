@@ -1,11 +1,12 @@
-from PIL import Image
-from torchvision import transforms
 import glob
 import json
-import numpy as np
 import os
 import re
+
+import numpy as np
 import torch
+from PIL import Image
+from torchvision import transforms
 
 label = {
     '061_foam_brick': 0,
