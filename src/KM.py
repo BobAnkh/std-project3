@@ -76,26 +76,6 @@ class KuhnMunkres(object):
                 self.change_exception(self.x_nodes, -self.minz)
                 self.change_exception(self.y_nodes, self.minz)
 
-    """
-    def dfs(self, i):
-        x_node = self.x_nodes[i]
-        x_node.visit = True
-        for j in range(self.y_length):
-            y_node = self.y_nodes[j]
-            if not y_node.visit:
-                t = x_node.exception + y_node.exception - self.matrix[i][j]
-                if abs(t) < zero_threshold:
-                    y_node.visit = True
-                    if y_node.match is None or self.dfs(y_node.match):
-                        x_node.match = j
-                        y_node.match = i
-                        return True
-                else:
-                    if t >= zero_threshold:
-                        self.minz = min(self.minz, t)
-        return False
-    """
-
     def dfs(self, i):
         # print(i)
         match_list = []
@@ -116,10 +96,9 @@ class KuhnMunkres(object):
                             i = y_node.match
                             break
                     else:
-                        if t >= zero_threshold:
-                            self.minz = min(self.minz, t)
-                        else:
-                            self.minz = -min(self.minz, abs(t))
+                        if abs(t) >= zero_threshold:
+                            self.minz = self.minz if abs(
+                                self.minz) < abs(t) else t
             else:
                 return False
 

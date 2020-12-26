@@ -43,7 +43,7 @@ def test_task1(root_path):
 
     results = {}
     for sample in test_loader:
-        inputs = sample["audio"].float().cuda()
+        inputs = sample['audio'].float().cuda()
         outputs = model(inputs)
         _, preds = torch.max(outputs, 1)
         mapper = map(
@@ -78,14 +78,14 @@ def test_task2(root_path):
     model1.cuda()
     model1.eval()
     for sample in test_loader1:
-        inputs = sample["rgb"].float().cuda()
+        inputs = sample['rgb'].float().cuda()
         outputs = model1(inputs)
         _, preds = torch.max(outputs, 1)
         tmp = list(
             map(
                 lambda i: {
-                    "label": sample["label"][i],
-                    "class": preds[i].detach().cpu().numpy().tolist()
+                    'label': sample['label'][i],
+                    'class': preds[i].detach().cpu().numpy().tolist()
                 }, range(len(sample['label']))))
         image_rel.append(tmp)
 
@@ -98,14 +98,14 @@ def test_task2(root_path):
     model2.cuda()
     model2.eval()
     for sample in test_loader2:
-        inputs = sample["audio"].float().cuda()
+        inputs = sample['audio'].float().cuda()
         outputs = model2(inputs)
         _, preds = torch.max(outputs, 1)
         mapper = list(
             map(
                 lambda i: {
-                    "label": sample["label"][i],
-                    "class": preds[i].detach().cpu().numpy().tolist()
+                    'label': sample['label'][i],
+                    'class': preds[i].detach().cpu().numpy().tolist()
                 }, range(len(sample['label']))))
         audio_rel.append(mapper)
 
@@ -118,13 +118,13 @@ def test_task2(root_path):
     model3.cuda()
     model3.eval()
     for sample in test_loader3:
-        inputs = sample["audio"].float().cuda()
+        inputs = sample['audio'].float().cuda()
         outputs = model3(inputs)
         tmp = list(
             map(
                 lambda i: {
-                    "label": sample["label"][i],
-                    "angle_net": outputs[i].detach().cpu().numpy().tolist()
+                    'label': sample['label'][i],
+                    'angle_net': outputs[i].detach().cpu().numpy().tolist()
                 }, range(len(sample['label']))))
         angle_rel.append(tmp)
 
@@ -135,13 +135,13 @@ def test_task2(root_path):
     model4.cuda()
     model4.eval()
     for sample in test_loader3:
-        inputs = sample["audio"].float().cuda()
+        inputs = sample['audio'].float().cuda()
         outputs = model4(inputs)
         tmp = list(
             map(
                 lambda i: {
-                    "label": sample["label"][i],
-                    "pos_net": outputs[i].detach().cpu().numpy().tolist()
+                    'label': sample['label'][i],
+                    'pos_net': outputs[i].detach().cpu().numpy().tolist()
                 }, range(len(sample['label']))))
         loc_rel.append(tmp)
     print('Start matching...')
@@ -167,9 +167,30 @@ def test_task2(root_path):
     results = sorted(sum(results, []))
     results = dict(
         list(map(lambda i: (i[0], int(i[1].split('_')[-1])), results)))
-    for l in test_data2.data_dir:
-        results.setdefault(l["label"], -1)
+    unmatched_audio = [d
+                       for l in test_data2.data_dir if l['label'] not in results
+                       for d in audio_info.to_dict('records') if d['label'] == l['label']]
+    unmatched_video = [d
+                       for l in test_data1.data_dir if int(
+                           l['label'].split('_')[-1]) not in results.values()
+                       for d in video_info.to_dict('records') if d['label'] == l['label']]
+    unmatched_info = \
+        pd.json_normalize(unmatched_audio) \
+        .assign(key=1) \
+        .merge(pd.json_normalize(unmatched_video)
+               .assign(key=1),
+               on='key',
+               how='outer') \
+        .drop('key', axis=1) \
+        .to_dict('records')
+    unmatched_results = dict(
+        list(
+            map(
+                lambda i: (i[0], int(i[1].split('_')[-1])),
+                sorted(find_match(unmatched_info)))))
+    results.update(unmatched_results)
     print('----------Finish task2 test----------')
+
     return results
 
 
@@ -196,14 +217,14 @@ def test_task3(root_path):
     model1.cuda()
     model1.eval()
     for sample in test_loader1:
-        inputs = sample["rgb"].float().cuda()
+        inputs = sample['rgb'].float().cuda()
         outputs = model1(inputs)
         _, preds = torch.max(outputs, 1)
         tmp = list(
             map(
                 lambda i: {
-                    "label": sample["label"][i],
-                    "class": preds[i].detach().cpu().numpy().tolist()
+                    'label': sample['label'][i],
+                    'class': preds[i].detach().cpu().numpy().tolist()
                 }, range(len(sample['label']))))
         image_rel.append(tmp)
 
@@ -216,14 +237,14 @@ def test_task3(root_path):
     model2.cuda()
     model2.eval()
     for sample in test_loader2:
-        inputs = sample["audio"].float().cuda()
+        inputs = sample['audio'].float().cuda()
         outputs = model2(inputs)
         _, preds = torch.max(outputs, 1)
         mapper = list(
             map(
                 lambda i: {
-                    "label": sample["label"][i],
-                    "class": preds[i].detach().cpu().numpy().tolist()
+                    'label': sample['label'][i],
+                    'class': preds[i].detach().cpu().numpy().tolist()
                 }, range(len(sample['label']))))
         audio_rel.append(mapper)
 
@@ -236,13 +257,13 @@ def test_task3(root_path):
     model3.cuda()
     model3.eval()
     for sample in test_loader3:
-        inputs = sample["audio"].float().cuda()
+        inputs = sample['audio'].float().cuda()
         outputs = model3(inputs)
         tmp = list(
             map(
                 lambda i: {
-                    "label": sample["label"][i],
-                    "angle_net": outputs[i].detach().cpu().numpy().tolist()
+                    'label': sample['label'][i],
+                    'angle_net': outputs[i].detach().cpu().numpy().tolist()
                 }, range(len(sample['label']))))
         angle_rel.append(tmp)
 
@@ -253,13 +274,13 @@ def test_task3(root_path):
     model4.cuda()
     model4.eval()
     for sample in test_loader3:
-        inputs = sample["audio"].float().cuda()
+        inputs = sample['audio'].float().cuda()
         outputs = model4(inputs)
         tmp = list(
             map(
                 lambda i: {
-                    "label": sample["label"][i],
-                    "pos_net": outputs[i].detach().cpu().numpy().tolist()
+                    'label': sample['label'][i],
+                    'pos_net': outputs[i].detach().cpu().numpy().tolist()
                 }, range(len(sample['label']))))
         loc_rel.append(tmp)
     print('Start matching...')
@@ -286,15 +307,15 @@ def test_task3(root_path):
     results = dict(
         list(map(lambda i: (i[0], int(i[1].split('_')[-1])), results)))
     for l in test_data2.data_dir:
-        results.setdefault(l["label"], -1)
+        results.setdefault(l['label'], -1)
     print('----------Finish task3 test----------')
     return results
 
 
-if __name__ == "__main__":
-    task1 = test_task1("./dataset/task1/test")
+if __name__ == '__main__':
+    task1 = test_task1('./dataset/task1/test')
     # json.dump(task1, open('task1_results.json', 'w', encoding='utf-8'), ensure_ascii=False)
-    task2 = test_task2("./dataset/task2/test/3")
+    task2 = test_task2('./dataset/task2/test/3')
     # json.dump(task2, open('task2_results.json', 'w', encoding='utf-8'), ensure_ascii=False)
-    task3 = test_task3("./dataset/task3/test/3")
+    task3 = test_task3('./dataset/task3/test/3')
     # json.dump(task3, open('task3_results.json', 'w', encoding='utf-8'), ensure_ascii=False)
