@@ -1,12 +1,16 @@
 import json
 import os
 
+import pandas as pd
+
 import torch
 from torch.utils.data.dataloader import DataLoader
 
 from src.dataloader import AudioTestDataset, VideoTestDataset
 from src.model import AudioClassifier, ImageClassifier, ActionAngle, ActionLoc
 from src.audio_process import pre_process
+from src.image_center import test_mask_process
+from src.KM import find_match
 
 
 def test_task1(root_path):
@@ -61,10 +65,14 @@ def test_task2(root_path):
     print('Pre-processing audio data!')
     pre_process(root_path)
 
+    print('Processing mask data...')
+    mask_list = test_mask_process(root_path)
+
     print('Image classification...')
     image_rel = []
     test_data1 = VideoTestDataset(root_path)
-    test_loader1 = DataLoader(test_data1, batch_size=64, num_workers=os.cpu_count())
+    test_loader1 = DataLoader(
+        test_data1, batch_size=64, num_workers=os.cpu_count())
     model1 = ImageClassifier().load_from_checkpoint('weights/image-resnet44.ckpt')
     model1.cuda()
     model1.eval()
@@ -103,7 +111,8 @@ def test_task2(root_path):
 
     print('Angle calculated...')
     angle_rel = []
-    model3 = ActionAngle().load_from_checkpoint('weights/action-angle-resnet110.ckpt')
+    model3 = ActionAngle().load_from_checkpoint(
+        'weights/action-angle-resnet110.ckpt')
     model3.cuda()
     model3.eval()
     for sample in test_loader2:
@@ -134,7 +143,29 @@ def test_task2(root_path):
         loc_rel.append(tmp)
 
     print('Start matching...')
-    results = None
+    angle_rel = pd.json_normalize(sum(angle_rel, []))
+    audio_rel = pd.json_normalize(sum(audio_rel, []))
+    image_rel = pd.json_normalize(sum(image_rel, []))
+    loc_rel = pd.json_normalize(sum(loc_rel, []))
+    mask_list = pd.json_normalize(mask_list)
+
+    audio_info = pd.merge(pd.merge(audio_rel, angle_rel, on='label', how='outer'),
+                          loc_rel,
+                          on='label',
+                          how='outer')
+    video_info = pd.merge(image_rel, mask_list, on='label', how='outer')
+    info_list = pd.merge(audio_info, video_info, on='class', how='outer')
+
+    classes = info_list.groupby(['class'])
+    info_classes = [classes.get_group(i).to_dict('records') for i in range(10)]
+    results = [find_match(d) for d in info_classes]
+    results = sorted(sum(results, []))
+    results = dict(list(map(
+        lambda i: (i[0], int(i[1].split('_')[-1])),
+        results
+    )))
+    for l in test_data2.data_dir:
+        results.setdefault(l["label"], -1)
     return results
 
 
