@@ -1,6 +1,7 @@
 import json
 import math
 import os
+import re
 
 import cv2
 from tqdm import tqdm
@@ -52,12 +53,25 @@ def pre_process(base_path):
     return object_info, object_list
 
 
-def main():
-    print('main')
-    object_info, object_list = pre_process('dataset/train')
-    json.dump(object_info, open('mask_processed.json', 'w', encoding='utf-8'), ensure_ascii=False)
-    json.dump(object_list, open('mask_angle.json', 'w', encoding='utf-8'), ensure_ascii=False)
+def test_mask_process(base_path):
+    print(base_path)
+    # object_info = {}
+    object_list = []
+    hit_segments = [file for file in sorted(os.listdir(base_path)) if not re.match(r".+\.(pkl|npy)", file)]
+    # direct_info = {}
+    for hit_segment in tqdm(hit_segments):
+        mask_images = sorted(os.listdir(os.path.join(base_path, hit_segment, 'mask')))
+        mask_centers = []
+        for mask_image in mask_images:
+            mask = cv2.imread(os.path.join(base_path, hit_segment, 'mask', mask_image))
+            M = cv2.moments(mask[:, :, 0])
+            cx = int(M['m10'] / M['m00'])
+            cy = int(M['m01'] / M['m00'])
+            mask_centers.append([cx, cy])
+        angle = math.atan2(mask_centers[-1][1] - mask_centers[0][1], mask_centers[-1][0] - mask_centers[0][0]) * 180 / math.pi
+        # direct_info[hit_segment] = [mask_centers[0], mask_centers[-1], angle]
+        direct_dict = {'label': hit_segment, 'angle_mask': angle, 'pos_mask': mask_centers[-1]}
+        object_list.append(direct_dict)
+    # object_info[label[object_folder]] = direct_info
 
-
-if __name__ == '__main__':
-    main()
+    return object_list
