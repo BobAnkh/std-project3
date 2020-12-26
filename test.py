@@ -6,7 +6,7 @@ import pandas as pd
 import torch
 from torch.utils.data.dataloader import DataLoader
 
-from src.dataloader import AudioTestDataset, VideoTestDataset
+from src.dataloader import AudioTestDataset, VideoTestDataset, ActionTestDataset
 from src.model import AudioClassifier, ImageClassifier, ActionAngle, ActionLoc
 from src.audio_process import pre_process
 from src.image_center import test_mask_process
@@ -113,11 +113,15 @@ def test_task2(root_path):
 
     print('Angle calculated...')
     angle_rel = []
+    test_data3 = ActionTestDataset(root_path)
+    test_loader3 = DataLoader(test_data3,
+                              batch_size=1,
+                              num_workers=os.cpu_count())
     model3 = ActionAngle().load_from_checkpoint(
         'weights/action-angle-resnet110.ckpt')
     model3.cuda()
     model3.eval()
-    for sample in test_loader2:
+    for sample in test_loader3:
         inputs = sample["audio"].float().cuda()
         outputs = model3(inputs)
         tmp = list(
@@ -133,7 +137,7 @@ def test_task2(root_path):
     model4 = ActionLoc().load_from_checkpoint('weights/action-loc-resnet110.ckpt')
     model4.cuda()
     model4.eval()
-    for sample in test_loader2:
+    for sample in test_loader3:
         inputs = sample["audio"].float().cuda()
         outputs = model4(inputs)
         tmp = list(
@@ -228,11 +232,15 @@ def test_task3(root_path):
 
     print('Angle calculated...')
     angle_rel = []
+    test_data3 = ActionTestDataset(root_path)
+    test_loader3 = DataLoader(test_data3,
+                              batch_size=1,
+                              num_workers=os.cpu_count())
     model3 = ActionAngle().load_from_checkpoint(
         'weights/action-angle-resnet110.ckpt')
     model3.cuda()
     model3.eval()
-    for sample in test_loader2:
+    for sample in test_loader3:
         inputs = sample["audio"].float().cuda()
         outputs = model3(inputs)
         tmp = list(
@@ -248,7 +256,7 @@ def test_task3(root_path):
     model4 = ActionLoc().load_from_checkpoint('weights/action-loc-resnet110.ckpt')
     model4.cuda()
     model4.eval()
-    for sample in test_loader2:
+    for sample in test_loader3:
         inputs = sample["audio"].float().cuda()
         outputs = model4(inputs)
         tmp = list(
