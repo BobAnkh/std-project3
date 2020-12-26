@@ -30,6 +30,7 @@ def test_task1(root_path):
         'whiteboard_spray': 8
         'yellow_block': 9
     '''
+    print('----------Start task1 test----------')
     print('Pre-processing audio data!')
     pre_process(root_path)
     print('Starting test!')
@@ -51,7 +52,7 @@ def test_task1(root_path):
             (sample['label'][i], preds[i].detach().cpu().numpy().tolist()),
             range(len(sample['label'])))
         results.update(mapper)
-
+    print('----------Finish task1 test----------')
     return results
 
 
@@ -62,6 +63,7 @@ def test_task2(root_path):
     results = {'audio_0000.pkl': 23, ‘audio_0001’: 11, ...}
     This means audio 'audio_0000.pkl' is matched to video 'video_0023' and ‘audio_0001’ is matched to 'video_0011'.
     '''
+    print('----------Start task2 test----------')
     print('Pre-processing audio data!')
     pre_process(root_path)
 
@@ -165,6 +167,7 @@ def test_task2(root_path):
     )))
     for l in test_data2.data_dir:
         results.setdefault(l["label"], -1)
+    print('----------Finish task2 test----------')
     return results
 
 
@@ -175,6 +178,7 @@ def test_task3(root_path):
     results = {'audio_0000.pkl': -1, ‘audio_0001’: 12, ...}
     This means audio 'audio_0000.pkl' is not matched to any video and ‘audio_0001’ is matched to 'video_0012'.
     '''
+    print('----------Start task3 test----------')
     print('Pre-processing audio data!')
     pre_process(root_path)
 
@@ -278,10 +282,14 @@ def test_task3(root_path):
     )))
     for l in test_data2.data_dir:
         results.setdefault(l["label"], -1)
+    print('----------Finish task3 test----------')
     return results
 
 
 if __name__ == "__main__":
-    test_task1("./dataset/task1/test")
-    test_task2("./dataset/task2/test/0")
-    test_task3("./dataset/task3/test/0")
+    task1 = test_task1("./dataset/task1/test")
+    # json.dump(task1, open('task1_results.json', 'w', encoding='utf-8'), ensure_ascii=False)
+    task2 = test_task2("./dataset/task2/test/3")
+    # json.dump(task2, open('task2_results.json', 'w', encoding='utf-8'), ensure_ascii=False)
+    task3 = test_task3("./dataset/task3/test/3")
+    # json.dump(task3, open('task3_results.json', 'w', encoding='utf-8'), ensure_ascii=False)
